@@ -22,3 +22,5 @@ data
 !data/inputs/.keep
 !data/examples/.keep
 !data/puzzles/.keep
+
+.idea
