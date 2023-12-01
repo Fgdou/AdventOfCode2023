@@ -1,8 +1,42 @@
+const NUMBERS_STRING: [&str; 18] = [
+    "one",
+    "two",
+    "three",
+    "four",
+    "five",
+    "six",
+    "seven",
+    "eight",
+    "nine",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+];
+
 fn get_numbers(s: &str) -> Vec<u32> {
     s.chars()
-    .into_iter()
     .filter_map(|c| c.to_digit(10))
     .collect::<Vec<u32>>()
+}
+
+fn parse_string(s: &str) -> u32 {
+    let i = NUMBERS_STRING.iter().position(|n| n == &s).unwrap();
+    (i as u32%9) + 1
+}
+
+fn get_numbers_2(s: &str) -> Vec<u32> {
+    let mut indices: Vec<(usize, &str)> = NUMBERS_STRING.iter()
+        .map(|n| s.match_indices(n))
+        .flatten()
+        .collect();
+    indices.sort_by_key(|e| e.0);
+    indices.iter().map(|n| parse_string(n.1)).collect::<Vec<u32>>()
 }
 
 fn get_line(nums: Vec<u32>) -> u32 {
@@ -23,7 +57,13 @@ pub fn part_one(input: &str) -> Option<u32> {
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    None
+    Some(
+        input.split('\n')
+        .filter(|line| !line.is_empty())
+        .map(|line| get_numbers_2(line))
+        .map(|num| get_line(num))
+        .sum()
+    )
 }
 
 advent_of_code::main!(1);
@@ -50,7 +90,13 @@ mod tests {
 
     #[test]
     fn test_part_two() {
-        let result = part_two(&advent_of_code::template::read_file("examples", 1));
-        assert_eq!(result, None);
+        let result = part_two(&r#"two1nine
+eightwothree
+abcone2threexyz
+xtwone3four
+4nineeightseven2
+zoneight234
+7pqrstsixteen"#);
+        assert_eq!(result, Some(281));
     }
 }
