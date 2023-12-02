@@ -69,7 +69,22 @@ pub fn part_one(input: &str) -> Option<u32> {
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    None
+    let games = parse(input);
+    
+    let sum = games.into_iter().map(|game| {
+        game.sets.into_iter()
+            .reduce(|s1, s2| {
+                Set {
+                    r: s1.r.max(s2.r),
+                    g: s1.g.max(s2.g),
+                    b: s1.b.max(s2.b),
+                }
+            })
+    })
+    .filter_map(|s| s)
+    .map(|s| s.r*s.g*s.b)
+    .sum();
+    Some(sum)
 }
 
 advent_of_code::main!(2);
@@ -112,7 +127,11 @@ Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green");
 
     #[test]
     fn test_part_two() {
-        let result = part_two(&advent_of_code::template::read_file("examples", 2));
-        assert_eq!(result, None);
+        let result = part_two("Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
+Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue
+Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
+Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
+Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green");
+        assert_eq!(result, Some(2286));
     }
 }
