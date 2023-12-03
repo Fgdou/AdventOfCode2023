@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashSet, HashMap};
 
 type Map = Vec<Vec<char>>;
 
@@ -77,7 +77,72 @@ pub fn part_one(input: &str) -> Option<u32> {
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    None
+    let mut visited = HashSet::<Pair>::new();
+        let input = parse(input);
+
+        let mut gears: HashMap<Pair, Vec<u32>> = HashMap::new();
+    
+        for i in input.iter().enumerate() {
+            for j in 0..i.1.len() {
+                let mut n = j;
+                let mut number = 0;
+    
+                let mut connected: Option<Pair> = None;
+    
+                loop {
+                    let pos = Pair{x: n, y: i.0};
+                    let char = i.1[n];
+    
+                    if visited.contains(&pos) {
+                        break;
+                    }
+    
+                    if let Some(num) = char.to_digit(10) {
+                        number *= 10;
+                        number += num;
+                    } else {
+                        break;
+                    }
+    
+                    for k in i.0 as i32-1..=i.0 as i32+1 {
+                        for l in n as i32-1..=n as i32+1 {
+                            if k == i.0 as i32 && l == n as i32 || k < 0 || l < 0 || k >= input.len() as i32 || l >= i.1.len() as i32 {
+                                continue;
+                            }
+    
+                            let c = input[k as usize][l as usize];
+                            if !c.is_numeric() && c != '.' {
+                                connected = Some(Pair{x: l as usize, y: k as usize});
+                            }
+                        }
+                    }
+    
+    
+                    visited.insert(pos);
+    
+    
+    
+                    if n+1 >= i.1.len() {
+                        break;
+                    }else{
+                        n += 1;
+                    }
+                }
+    
+                if let Some(pos) = connected {
+                    match gears.get_mut(&pos) {
+                        None => {gears.insert(pos, vec!(number));},
+                        Some(v) => {v.push(number);},
+                    }
+                }
+            }
+        }
+    
+        Some(
+            gears.iter()
+                .filter(|g| g.1.len() >= 2)
+                .map(|g| g.1.iter().product::<u32>()).sum()
+        )
 }
 
 advent_of_code::main!(3);
@@ -123,7 +188,16 @@ mod tests {
 
     #[test]
     fn test_part_two() {
-        let result = part_two(&advent_of_code::template::read_file("examples", 3));
-        assert_eq!(result, None);
+        let result = part_two("467..114..
+...*......
+..35..633.
+......#...
+617*......
+.....+.58.
+..592.....
+......755.
+...$.*....
+.664.598..");
+        assert_eq!(result, Some(467835));
     }
 }
