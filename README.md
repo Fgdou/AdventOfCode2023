@@ -1,4 +1,4 @@
-# AdventOfCode 2023
+# [AdventOfCode 2023](https://adventofcode.com/2023)
 Template by [fspoettel](https://github.com/fspoettel/advent-of-code-rust).
 ![eoc.jpg](./aoc.jpeg)
 
