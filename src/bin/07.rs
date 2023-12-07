@@ -1,11 +1,11 @@
 use std::{collections::HashMap, cmp::Ordering};
 
-type num = u32;
+type Num = u32;
 struct Card(char);
 #[derive(Debug)]
 struct Hand {
     cards: Vec<u32>,
-    bid: num
+    bid: Num
 }
 type Input = Vec<Hand>;
 
@@ -39,7 +39,7 @@ enum Type {
 impl Hand {
     pub fn get_type(&self) -> Type {
         let map = self.cards.iter()
-            .fold(HashMap::<u32, num>::new(), |mut map, card| {
+            .fold(HashMap::<u32, Num>::new(), |mut map, card| {
                 map.insert(*card, *map.get(card).unwrap_or_else(|| &0) + 1);
                 map
             });
@@ -47,8 +47,6 @@ impl Hand {
         let mut values = map.values().collect::<Vec<_>>();
         values.sort();
         values.reverse();
-
-        dbg!(&values);
 
         if values.len() == 1 {
             return Type::Five;
@@ -63,14 +61,7 @@ impl Hand {
             _ => Type::High
         }
     }
-}
-impl PartialEq for Hand {
-    fn eq(&self, other: &Self) -> bool {
-        self.cards == other.cards
-    }
-}
-impl PartialOrd for Hand {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+    fn compare_cards(&self, other: &Self) -> Ordering {
         self.cards.iter().enumerate()
             .find_map(|(i, n)| {
                 let res = n.partial_cmp(&other.cards[i]).unwrap();
@@ -78,9 +69,32 @@ impl PartialOrd for Hand {
                     return Some(res);
                 }
                 None
-            })
+            }).unwrap_or(Ordering::Equal)
     }
 }
+
+impl PartialEq for Hand {
+    fn eq(&self, other: &Self) -> bool {
+        self.cards == other.cards
+    }
+}
+impl Eq for Hand{}
+impl PartialOrd for Hand {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+impl Ord for Hand {
+    fn cmp(&self, other: &Self) -> Ordering {
+        if self.get_type() != other.get_type() {
+            other.get_type().cmp(&self.get_type())
+        } else {
+            self.compare_cards(other)
+        }
+
+    }
+}
+
 
 fn parse(input: &str) -> Input {
     input.lines()
@@ -91,14 +105,19 @@ fn parse(input: &str) -> Input {
                     .unwrap()
                     .chars()
                     .map(|c| Card(c).into())
-                    .collect::<Vec<num>>(),
-                bid: parts.next().unwrap().parse::<num>().unwrap()
+                    .collect::<Vec<Num>>(),
+                bid: parts.next().unwrap().parse::<Num>().unwrap()
             }
         }).collect()
 }
 
 pub fn part_one(input: &str) -> Option<u32> {
-    None
+    let mut input = parse(input);
+    input.sort();
+    let res = input.iter().enumerate()
+        .map(|(i, hand)| hand.bid * (i+1) as Num)
+        .sum();
+    Some(res)
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
@@ -136,14 +155,14 @@ mod tests {
 
     #[test]
     fn test_ord(){
-        assert!(
-            Hand{cards: vec!(1, 1, 1, 1, 1), bid: 0} == Hand{cards: vec!(1, 1, 1, 1, 1), bid: 0}
+        assert_eq!(
+            Ordering::Equal, Hand{cards: vec!(1, 1, 1, 1, 1), bid: 0}.compare_cards(&Hand{cards: vec!(1, 1, 1, 1, 1), bid: 0})
         );
-        assert!(
-            Hand{cards: vec!(1, 0, 1, 1, 1), bid: 0} < Hand{cards: vec!(1, 1, 1, 1, 1), bid: 0}
+        assert_eq!(
+            Ordering::Less, Hand{cards: vec!(1, 0, 1, 1, 1), bid: 0}.compare_cards(&Hand{cards: vec!(1, 1, 1, 1, 1), bid: 0})
         );
-        assert!(
-            Hand{cards: vec!(1, 1, 1, 1, 1), bid: 0} > Hand{cards: vec!(1, 1, 1, 1, 0), bid: 0}
+        assert_eq!(
+            Ordering::Greater, Hand{cards: vec!(1, 1, 1, 1, 1), bid: 0}.compare_cards(&Hand{cards: vec!(1, 1, 1, 1, 0), bid: 0})
         );
     }
 }
