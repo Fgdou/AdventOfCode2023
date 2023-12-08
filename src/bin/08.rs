@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use lcm::Lcm;
+
 
 #[derive(Debug)]
 struct Node {
@@ -52,6 +54,18 @@ fn network_round<'a>(input: &'a Input, pos: &'a str, count: u32) -> (u32, &'a st
         })
 }
 
+fn count(input: &Input, start: &str) -> u32 {
+    let mut pos = start;
+    let mut i = 0;
+
+    while pos.chars().nth(2).unwrap() != 'Z' {
+        pos = network_move(&input.network, pos, input.instructions.chars().nth(i%input.instructions.len()).unwrap());
+        i = i+1;
+    }
+
+    i as u32
+}
+
 pub fn part_one(input: &str) -> Option<u32> {
     let input = parse(input);
 
@@ -69,15 +83,12 @@ pub fn part_two(input: &str) -> Option<u32> {
 
     let starts = input.network.keys().filter(|k| k.chars().nth(2).unwrap() == 'A');
 
-    let mut pos: Vec<&str> = starts.map(|s| s.as_str()).collect();
+    let numbers = starts.map(|s| count(&input, s));
 
-    let mut i = 0;
-    while !pos.iter().all(|s| s.chars().nth(2).unwrap() == 'Z') {
-        pos = pos.iter().map(|pos| {
-            network_move(&input.network, &pos, input.instructions.chars().nth(i%input.instructions.len()).unwrap())
-        }).collect();
-        i += 1;
-    }
+    let lcms = numbers.fold(1, |l, n| {
+        
+    })
+    
 
     Some(i as u32)
 }
