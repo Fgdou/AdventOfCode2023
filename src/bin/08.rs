@@ -72,13 +72,14 @@ pub fn part_two(input: &str) -> Option<u32> {
     let mut pos: Vec<&str> = starts.map(|s| s.as_str()).collect();
 
     let mut i = 0;
-    while pos.iter().all(|s| s.chars().nth(2).unwrap() == 'Z') {
-        pos.iter().map(|pos| {
-            
-        })
+    while !pos.iter().all(|s| s.chars().nth(2).unwrap() == 'Z') {
+        pos = pos.iter().map(|pos| {
+            network_move(&input.network, &pos, input.instructions.chars().nth(i%input.instructions.len()).unwrap())
+        }).collect();
+        i += 1;
     }
 
-    None
+    Some(i as u32)
 }
 
 advent_of_code::main!(8);
