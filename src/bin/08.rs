@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use lcm::Lcm;
+use num::integer::lcm;
 
 
 #[derive(Debug)]
@@ -43,7 +43,7 @@ fn network_move<'a>(network: &'a HashMap<String, Node>, position: &str, directio
         _ => panic!()
     }
 }
-fn network_round<'a>(input: &'a Input, pos: &'a str, count: u32) -> (u32, &'a str) {
+fn network_round<'a>(input: &'a Input, pos: &'a str, count: u64) -> (u64, &'a str) {
     input.instructions.chars()
         .fold((count, pos), |(i, pos), dir| {
             let pos = network_move(&input.network, pos, dir);
@@ -54,7 +54,7 @@ fn network_round<'a>(input: &'a Input, pos: &'a str, count: u32) -> (u32, &'a st
         })
 }
 
-fn count(input: &Input, start: &str) -> u32 {
+fn count(input: &Input, start: &str) -> u64 {
     let mut pos = start;
     let mut i = 0;
 
@@ -63,10 +63,10 @@ fn count(input: &Input, start: &str) -> u32 {
         i = i+1;
     }
 
-    i as u32
+    i as u64
 }
 
-pub fn part_one(input: &str) -> Option<u32> {
+pub fn part_one(input: &str) -> Option<u64> {
     let input = parse(input);
 
     let mut pos = (0, "AAA");
@@ -78,7 +78,7 @@ pub fn part_one(input: &str) -> Option<u32> {
     Some(pos.0)
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
+pub fn part_two(input: &str) -> Option<u64> {
     let input = parse(input);
 
     let starts = input.network.keys().filter(|k| k.chars().nth(2).unwrap() == 'A');
@@ -86,11 +86,11 @@ pub fn part_two(input: &str) -> Option<u32> {
     let numbers = starts.map(|s| count(&input, s));
 
     let lcms = numbers.fold(1, |l, n| {
-        
-    })
+        lcm(l, n)
+    });
     
 
-    Some(i as u32)
+    Some(lcms)
 }
 
 advent_of_code::main!(8);
