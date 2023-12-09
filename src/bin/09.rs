@@ -39,6 +39,20 @@ pub fn full_primitive(mut nums: Vec<Vec<i64>>) -> Vec<Vec<i64>> {
     nums
 }
 
+pub fn primitive2(nums: &Vec<i64>, mut other: Vec<i64>) -> Vec<i64> {
+    let first = other.first().unwrap();
+    other.insert(0, first - nums.first().unwrap());
+    other
+}
+pub fn full_primitive2(mut nums: Vec<Vec<i64>>) -> Vec<Vec<i64>> {
+    let l = nums.len();
+    for i in 1..l {
+        let values = nums[l-i-1].clone();
+        nums[l-i-1] = primitive2(&nums[l-i], values)
+    }
+    nums
+}
+
 pub fn part_one(input: &str) -> Option<i64> {
     let input = parse(input);
 
@@ -47,14 +61,24 @@ pub fn part_one(input: &str) -> Option<i64> {
             let der = full_derive(line);
             full_primitive(der)
         })
-        .map(|tabs| *tabs[0].iter().last().unwrap())
+        .map(|tabs| *tabs[0].last().unwrap())
         .sum();
 
     Some(sum)
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    None
+pub fn part_two(input: &str) -> Option<i64> {
+    let input = parse(input);
+
+    let sum = input.into_iter()
+        .map(|line| {
+            let der = full_derive(line);
+            full_primitive2(der)
+        })
+        .map(|tabs| *tabs[0].first().unwrap())
+        .sum();
+
+    Some(sum)
 }
 
 advent_of_code::main!(9);
@@ -72,7 +96,7 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", 9));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(2));
     }
 
     #[test]
@@ -94,8 +118,14 @@ mod tests {
     }
 
     #[test]
-    fn test_full_primitive(){
+    fn test_primitive(){
         assert_eq!(vec!(3, 3, 3, 3, 3, 3), primitive(&vec!(0, 0, 0, 0, 0), vec!(3, 3, 3, 3, 3)));
         assert_eq!(vec!(0, 3, 6, 9, 12, 15, 18), primitive(&vec!(3, 3, 3, 3, 3, 3), vec!(0, 3, 6, 9, 12, 15)));
+    }
+
+    #[test]
+    fn test_primitive2() {
+        assert_eq!(vec!(2, 2, 2, 2), primitive2(&vec!(0, 0, 0), vec!(2, 2, 2)));
+        assert_eq!(vec!(-2, 0, 2, 4, 6), primitive2(&vec!(2, 2, 2, 2), vec!(0, 2, 4, 6)));
     }
 }
