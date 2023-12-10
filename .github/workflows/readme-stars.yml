@@ -16,16 +16,16 @@ jobs:
               env:
                   AOC_ENABLED: ${{vars.$AOC_ENABLED}}
             - uses: k2bd/advent-readme-stars@v1
-              if: ${{vars.$AOC_ENABLED}}
+              if: ${{vars.AOC_ENABLED}}
               env:
-                  AOC_ENABLED: ${{vars.$AOC_ENABLED}}
+                  AOC_ENABLED: ${{vars.AOC_ENABLED}}
               with:
                   userId: ${{ secrets.AOC_USER_ID }}
                   sessionCookie: ${{ secrets.AOC_SESSION }}
                   year: ${{ secrets.AOC_YEAR }}
             - uses: stefanzweifel/git-auto-commit-action@v4
-              if: ${{vars.$AOC_ENABLED}}
+              if: ${{vars.AOC_ENABLED}}
               env:
-                  AOC_ENABLED: ${{vars.$AOC_ENABLED}}
+                  AOC_ENABLED: ${{vars.AOC_ENABLED}}
               with:
                   commit_message: "update readme progess"
