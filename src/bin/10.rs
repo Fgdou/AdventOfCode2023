@@ -108,14 +108,14 @@ fn next_pos(pos: &Vector2<i32>, next: &Pipe) -> Vector2<i32> {
         next.one.clone()
     }
 }
-fn get_pipe_pos(maze: &Maze) -> HashSet<Vector2<i32>> {
+fn get_pipe_pos(maze: &Maze) -> Vec<Vector2<i32>> {
     let mut pos = maze.start;
     let mut next = maze.maze.get(&pos).unwrap().one;
 
-    let mut set = HashSet::new();
+    let mut set = Vec::new();
 
     loop {
-        set.insert(pos);
+        set.push(pos);
         let next_pipe = maze.maze.get(&next).unwrap();
         let next_pipe_pos = next_pos(&pos, next_pipe);
         pos = next;
@@ -129,6 +129,45 @@ fn get_pipe_pos(maze: &Maze) -> HashSet<Vector2<i32>> {
     set
 }
 
+fn run_outside(pos: Vector2<i32>, size: &Vector2<i32>, border: &HashSet<Vector2<i32>>, visited: &mut HashSet<Vector2<i32>>) {
+    if pos.x < -1 || pos.y < -1 || pos.x > size.x || pos.y > size.y {
+        return
+    }
+    if visited.contains(&pos) {
+        return
+    }
+    if border.contains(&pos) {
+        return
+    }
+    visited.insert(pos.clone());
+    
+    let nexts = [
+        (-1, 0),
+        (1, 0),
+        (0, -1),
+        (0, 1),
+    ].into_iter()
+        .map(|(x, y)| Vector2::new(x, y))
+        .map(|v| pos + v);
+
+    nexts.into_iter().for_each(|v| {
+        run_outside(v, size, border, visited);
+    });
+}
+fn double_maze(pipes: &Vec<Vector2<i32>>) -> Vec<Vector2<i32>> {
+    let mut res = Vec::new();
+    
+    (0..pipes.len()).for_each(|i| {
+        let p1 = pipes[i]*2;
+        let p2 = pipes[(i+1) % pipes.len()]*2;
+        let mid = (p1+p2)/2;
+        res.push(p1);
+        res.push(mid);
+    });
+
+    res
+}
+
 pub fn part_one(input: &str) -> Option<u32> {
     let input = parse(input);
     let cnt = get_pipe_pos(&input).len() as u32;
@@ -136,8 +175,46 @@ pub fn part_one(input: &str) -> Option<u32> {
     Some(cnt/2)
 }
 
+fn print_set(vec: &HashSet<Vector2<i32>>, size: &Vector2<i32>) -> String {
+    (0..size.y).map(|y| {
+        (0..size.x).map(|x| {
+            match vec.contains(&Vector2::new(x, y)) {
+                true => '*',
+                false => '.'
+            }
+        }).collect::<String>()
+    }).collect::<Vec<String>>().join("\n")
+}
+
 pub fn part_two(input: &str) -> Option<u32> {
-    None
+    let input = parse(input);
+    let pipes = get_pipe_pos(&input);
+    let doubled_pipes = double_maze(&pipes);
+    let doubled_size = input.size*2;
+
+    let mut visited = HashSet::new();
+    run_outside(Vector2::new(-1, -1), &doubled_size, &doubled_pipes.into_iter().collect(), &mut visited);
+
+    let divided = visited.into_iter()
+        .filter_map(|v| {
+            if v.x%2 == 0 && v.y%2 == 0 {
+                Some(v/2)
+            }else{
+                None
+            }
+        })
+        .collect::<HashSet<_>>();
+
+    let all = (0..input.size.y).into_iter().map(|y| {
+        (0..input.size.x).into_iter().map(|x| {
+            Vector2::new(x, y)
+        }).collect::<HashSet<_>>()
+    }).flatten()
+    .filter(|v| !divided.contains(v))
+    .filter(|v| !pipes.contains(v))
+    .collect::<HashSet<_>>();
+
+    Some(all.len() as u32)
 }
 
 advent_of_code::main!(10);
@@ -164,6 +241,16 @@ LJ.LJ");
 
     #[test]
     fn test_part_two() {
+        let result = part_two("...........
+.S-------7.
+.|F-----7|.
+.||.....||.
+.||.....||.
+.|L-7.F-J|.
+.|..|.|..|.
+.L--J.L--J.
+...........");
+        assert_eq!(result, Some(4));
         let result = part_two("FF7FSF7F7F7F7F7F---7
 L|LJ||||||||||||F--J
 FL-7LJLJ||||||LJL-77
