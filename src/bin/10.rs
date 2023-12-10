@@ -6,26 +6,12 @@ use cgmath::{Vector2, Zero};
 struct Pipe {
     one:  Vector2<i32>,
     two: Vector2<i32>,
-    letter: char
 }
 #[derive(Debug)]
 struct Maze {
     maze: HashMap<Vector2<i32>, Pipe>,
     start: Vector2<i32>,
     size: Vector2<i32>,
-}
-
-impl Maze {
-    fn print(&self) -> String {
-        (0..self.size.y).map(|y| {
-            (0..self.size.x).map(|x| {
-                match self.maze.get(&Vector2::new(x, y)) {
-                    Some(n) => n.letter,
-                    None => '.'
-                }
-            }).collect::<String>()
-        }).collect::<Vec<String>>().join("\n")
-    }
 }
 
 fn parse(input: &str) -> Maze {        
@@ -44,32 +30,26 @@ fn parse(input: &str) -> Maze {
                 '|' => {res.maze.insert(pos, Pipe { 
                     one: Vector2::new(x, y-1), 
                     two: Vector2::new(x, y+1),
-                    letter: c,
                 });},
                 '-' => {res.maze.insert(pos, Pipe { 
                     one: Vector2::new(x-1, y), 
                     two: Vector2::new(x+1, y),
-                    letter: c,
                 });},
                 'F' => {res.maze.insert(pos, Pipe { 
                     one: Vector2::new(x+1, y), 
                     two: Vector2::new(x, y+1),
-                    letter: c,
                 });},
                 '7' => {res.maze.insert(pos, Pipe { 
                     one: Vector2::new(x-1, y), 
                     two: Vector2::new(x, y+1),
-                    letter: c,
                 });},
                 'L' => {res.maze.insert(pos, Pipe { 
                     one: Vector2::new(x+1, y), 
                     two: Vector2::new(x, y-1),
-                    letter: c,
                 });},
                 'J' => {res.maze.insert(pos, Pipe { 
                     one: Vector2::new(x-1, y), 
                     two: Vector2::new(x, y-1),
-                    letter: c,
                 });},
                 'S' => {
                     res.start = pos;
@@ -96,7 +76,7 @@ fn parse(input: &str) -> Maze {
             }
         });
     assert!(poses.clone().count() == 2);
-    res.maze.insert(start, Pipe { one: poses.next().unwrap(), two: poses.next().unwrap(), letter: 'S'});
+    res.maze.insert(start, Pipe { one: poses.next().unwrap(), two: poses.next().unwrap()});
 
     res
 }
@@ -129,30 +109,40 @@ fn get_pipe_pos(maze: &Maze) -> Vec<Vector2<i32>> {
     set
 }
 
-fn run_outside(pos: Vector2<i32>, size: &Vector2<i32>, border: &HashSet<Vector2<i32>>, visited: &mut HashSet<Vector2<i32>>) {
-    if pos.x < -1 || pos.y < -1 || pos.x > size.x || pos.y > size.y {
-        return
-    }
-    if visited.contains(&pos) {
-        return
-    }
-    if border.contains(&pos) {
-        return
-    }
-    visited.insert(pos.clone());
-    
-    let nexts = [
-        (-1, 0),
-        (1, 0),
-        (0, -1),
-        (0, 1),
-    ].into_iter()
-        .map(|(x, y)| Vector2::new(x, y))
-        .map(|v| pos + v);
+fn run_outside(pos: Vector2<i32>, size: &Vector2<i32>, border: &HashSet<Vector2<i32>>) -> HashSet<Vector2<i32>> {
+    let mut visited = HashSet::<Vector2<i32>>::new();
+    let mut stack = Vec::<Vector2<i32>>::new();
+    stack.push(pos);
 
-    nexts.into_iter().for_each(|v| {
-        run_outside(v, size, border, visited);
-    });
+    while !stack.is_empty() {
+        let pos = stack.pop().unwrap();
+
+        if pos.x < -1 || pos.y < -1 || pos.x > size.x || pos.y > size.y {
+            continue;
+        }
+        if visited.contains(&pos) {
+            continue;
+        }
+        if border.contains(&pos) {
+            continue;
+        }
+        visited.insert(pos.clone());
+        
+        let nexts = [
+            (-1, 0),
+            (1, 0),
+            (0, -1),
+            (0, 1),
+        ].into_iter()
+            .map(|(x, y)| Vector2::new(x, y))
+            .map(|v| pos + v);
+
+        nexts.into_iter().for_each(|v| {
+            stack.push(v)
+        });
+    }
+
+    visited   
 }
 fn double_maze(pipes: &Vec<Vector2<i32>>) -> Vec<Vector2<i32>> {
     let mut res = Vec::new();
@@ -175,25 +165,13 @@ pub fn part_one(input: &str) -> Option<u32> {
     Some(cnt/2)
 }
 
-fn print_set(vec: &HashSet<Vector2<i32>>, size: &Vector2<i32>) -> String {
-    (0..size.y).map(|y| {
-        (0..size.x).map(|x| {
-            match vec.contains(&Vector2::new(x, y)) {
-                true => '*',
-                false => '.'
-            }
-        }).collect::<String>()
-    }).collect::<Vec<String>>().join("\n")
-}
-
 pub fn part_two(input: &str) -> Option<u32> {
     let input = parse(input);
     let pipes = get_pipe_pos(&input);
     let doubled_pipes = double_maze(&pipes);
     let doubled_size = input.size*2;
 
-    let mut visited = HashSet::new();
-    run_outside(Vector2::new(-1, -1), &doubled_size, &doubled_pipes.into_iter().collect(), &mut visited);
+    let visited = run_outside(Vector2::new(-1, -1), &doubled_size, &doubled_pipes.into_iter().collect());
 
     let divided = visited.into_iter()
         .filter_map(|v| {
