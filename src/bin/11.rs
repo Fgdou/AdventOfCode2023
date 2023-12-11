@@ -10,7 +10,7 @@ fn parse(input: &str) -> Input {
     }).collect()
 }
 
-fn expand(mut input: Input) -> Input {
+fn expand2(mut points: Vec<Vector2<usize>>, input: &Input, factor: usize) -> Vec<Vector2<usize>> {
     let lines = input.iter().enumerate().filter_map(|(i, l)| {
         if l.iter().all(|c| !*c) {
             Some(i)
@@ -26,19 +26,18 @@ fn expand(mut input: Input) -> Input {
         }
     }).collect::<Vec<usize>>();
     
-    cols.iter().rev().for_each(|c| {
-        input.iter_mut().for_each(|l| {
-            l.insert(*c, false)
-        })
-    });
-    lines.iter().rev().for_each(|l| {
-        input.insert(*l, vec![false; input[0].len()])
+    points.iter_mut().for_each(|p| {
+        let count_lines = lines.iter().filter(|l| p.y >= **l).count();
+        let count_cols = cols.iter().filter(|c| p.x >= **c).count();
+
+        p.x += factor*count_cols;
+        p.y += factor*count_lines;
     });
 
-    input
+    points
 }
 
-fn get_paires(input: &Vec<Vector2<i32>>) -> HashSet<(Vector2<i32>, Vector2<i32>)> {
+fn get_paires(input: &Vec<Vector2<usize>>) -> HashSet<(Vector2<usize>, Vector2<usize>)> {
     let mut res = HashSet::new();
 
     for i in 0..input.len() {
@@ -50,32 +49,54 @@ fn get_paires(input: &Vec<Vector2<i32>>) -> HashSet<(Vector2<i32>, Vector2<i32>)
     res
 }
 
-pub fn part_one(input: &str) -> Option<i32> {
+pub fn part_one(input: &str) -> Option<usize> {
     let input = parse(input);
-    let expanded = expand(input);
 
-    let points = expanded.iter().enumerate().map(|(y, l)| {
+    let points = input.iter().enumerate().map(|(y, l)| {
         l.iter().enumerate().filter_map(|(x, c)| {
             if *c {
-                Some(Vector2::new(x as i32, y as i32))
+                Some(Vector2::new(x as usize, y as usize))
             } else {
                 None
             }
         }).collect::<Vec<_>>()
     }).flatten().collect::<Vec<_>>();
 
-    let paires = get_paires(&points);
+    let points2 = expand2(points, &input, 1);
+
+    let paires = get_paires(&points2);
 
     let distances = paires.iter().map(|p| {
-        let diff = p.1 - p.0;
-        diff.x.abs() + diff.y.abs()
+        let diff = Vector2::new(p.1.x.abs_diff(p.0.x), p.1.y.abs_diff(p.0.y));
+        diff.x + diff.y
     });
 
     Some(distances.sum())
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    None
+pub fn part_two(input: &str) -> Option<usize> {
+    let input = parse(input);
+
+    let points = input.iter().enumerate().map(|(y, l)| {
+        l.iter().enumerate().filter_map(|(x, c)| {
+            if *c {
+                Some(Vector2::new(x as usize, y as usize))
+            } else {
+                None
+            }
+        }).collect::<Vec<_>>()
+    }).flatten().collect::<Vec<_>>();
+
+    let points2 = expand2(points, &input, 1000000-1);
+
+    let paires = get_paires(&points2);
+
+    let distances = paires.iter().map(|p| {
+        let diff = Vector2::new(p.1.x.abs_diff(p.0.x), p.1.y.abs_diff(p.0.y));
+        diff.x + diff.y
+    });
+
+    Some(distances.sum())
 }
 
 advent_of_code::main!(11);
@@ -93,6 +114,9 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", 11));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(82000210));
     }
 }
+
+
+// < 702771271959
