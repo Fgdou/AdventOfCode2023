@@ -80,7 +80,9 @@ pub fn part_one(input: &str) -> Option<i32> {
     Some(cnts.sum())
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
+pub fn part_two(input: &str) -> Option<i32> {
+    let input: Vec<Seq> = parse(input).into_iter().map(|r| expand(r, 5)).collect();
+
     None
 }
 
@@ -100,7 +102,7 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", 12));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(525152));
     }
 
     #[test]
