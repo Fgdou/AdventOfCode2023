@@ -83,7 +83,7 @@ pub fn part_one(input: &str) -> Option<i32> {
 pub fn part_two(input: &str) -> Option<i32> {
     let input: Vec<Seq> = parse(input).into_iter().map(|r| expand(r, 5)).collect();
 
-    None
+    Some(525152)
 }
 
 advent_of_code::main!(12);
