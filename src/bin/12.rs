@@ -58,6 +58,19 @@ fn visit(sequence: &Vec<State>, groups: &Vec<i32>) -> i32 {
     }
 }
 
+fn expand(seq: Seq, n: i32) -> Seq {
+    Seq {
+        groups: (0..n).into_iter().map(|_| seq.groups.clone()).flatten().collect(),
+        sequence: (0..n).into_iter()
+            .map(|_| seq.sequence.clone())
+            .reduce(|mut acc, mut e| {
+                acc.push(State::Unknown);
+                acc.append(&mut e);
+                acc
+            }).unwrap()
+    }
+}
+
 pub fn part_one(input: &str) -> Option<i32> {
     let input = parse(input);
     let cnts = input.iter().map(|s| {
