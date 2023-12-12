@@ -1,4 +1,4 @@
-use indicatif::{ProgressBar, ProgressIterator};
+use indicatif::ProgressIterator;
 
 #[derive(PartialEq, Clone, Debug)]
 enum State {
@@ -81,6 +81,44 @@ fn visit(sequence: Vec<State>, groups: &Vec<i32>) -> i32 {
         }
     }
 }
+fn visit2(sequence: Vec<State>, mut groups: Vec<i32>, i: usize) -> i32 {
+    if i == sequence.len() {
+        if groups.len() == 0 || groups[0] == 0 {
+            return 1
+        } else {
+            return 0
+        }
+    }
+
+    let c = &sequence[i];
+
+    match c {
+        State::Damaged => {
+            if groups[0] < 1 {
+                return 0
+            }
+            groups[0] -= 1;
+
+            visit2(sequence, groups, i+1)
+        },
+        State::Operational => {
+            if groups[0] != 0 {
+                return 0
+            }
+            groups.remove(0);
+            visit2(sequence, groups, i+1)
+        },
+        State::Unknown => {
+            let mut s1 = sequence.clone();
+            s1[i] = State::Damaged;
+            let mut s2 = sequence;
+            s2[i] = State::Operational;
+
+            visit2(s1, groups.clone(), i) + visit2(s2, groups, i)
+        },
+    }
+
+}
 
 fn expand(seq: Seq, n: i32) -> Seq {
     Seq {
@@ -98,7 +136,7 @@ fn expand(seq: Seq, n: i32) -> Seq {
 pub fn part_one(input: &str) -> Option<i32> {
     let input = parse(input);
     let cnts = input.into_iter().map(|s| {
-        visit(s.sequence, &s.groups)
+        visit2(s.sequence, s.groups, 0)
     });
     Some(cnts.sum())
 }
@@ -107,10 +145,10 @@ pub fn part_two(input: &str) -> Option<i32> {
     // let input: Vec<Seq> = parse(input).into_iter().map(|r| expand(r, 5)).collect();
 
     // let cnts = input.into_iter().progress().map(|s| {
-    //     visit(s.sequence, &s.groups)
+    //     visit2(s.sequence, s.groups, 0)
     // });
-    // Some(cnts.sum())
-    Some(525152)
+    // Some(cnts.sum());
+    None
 }
 
 advent_of_code::main!(12);
