@@ -16,6 +16,7 @@ impl From<char> for State {
     }
 }
 
+#[derive(Debug, PartialEq)]
 struct Seq {
     sequence: Vec<State>,
     groups: Vec<i32>
@@ -116,5 +117,18 @@ mod tests {
         assert_eq!(true, is_good(&vec!(Operational, Damaged, Operational, Damaged), &vec!(1, 1)));
         assert_eq!(false, is_good(&vec!(Operational, Damaged, Operational, Damaged), &vec!(1, 2)));
         assert_eq!(true, is_good(&vec!(Operational, Damaged, Damaged, Operational), &vec!(2)));
+    }
+
+    #[test]
+    fn test_expand(){
+        let vec = Seq{
+            groups: vec!(1, 2),
+            sequence: vec!(State::Operational, State::Damaged)
+        };
+        let expected = Seq {
+            groups: vec!(1, 2, 1, 2),
+            sequence: vec!(State::Operational, State::Damaged, State::Unknown, State::Operational, State::Damaged)
+        };
+        assert_eq!(expected, expand(vec, 2));
     }
 }
