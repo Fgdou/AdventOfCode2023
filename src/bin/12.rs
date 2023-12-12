@@ -1,3 +1,5 @@
+use indicatif::{ProgressBar, ProgressIterator};
+
 #[derive(PartialEq, Clone, Debug)]
 enum State {
     Operational,
@@ -33,28 +35,49 @@ fn parse(input: &str) -> Input {
     }).collect()
 }
 fn is_good(seq: &Vec<State>, groups: &Vec<i32>) -> bool {
-    let seqs = seq.split(|e| *e == State::Operational)
-        .filter(|s| s.len() != 0);
-    if seqs.clone().count() != groups.len() {
-        return false
-    }
-    seqs.enumerate()
-        .all(|(e, seq)| {
-            e < groups.len() && seq.len() as i32 == groups[e]
-        })
+    let seqs: Vec<i32> = seq.split(|e| *e == State::Operational)
+        .filter(|s| s.len() != 0)
+        .map(|s| s.len() as i32).collect();
+    &seqs == groups
 }
 
-fn visit(sequence: &Vec<State>, groups: &Vec<i32>) -> i32 {
+fn is_good_part(sequence: &[State], groups: &Vec<i32>) -> bool {
+    let cnts: Vec<i32> = sequence.to_vec()
+        .split(|s| *s == State::Operational)
+        .filter(|s| s.len() != 0)
+        .map(|s| s.len() as i32).collect();
+
+    if cnts.len() > groups.len() {
+        return false
+    }
+
+    if cnts.is_empty() {
+        return true
+    }
+
+    let p1 = cnts[0..cnts.len()-1].iter().enumerate().all(|(i, e)| {
+            *e == groups[i]
+        });
+    let p2 = cnts[cnts.len()-1] <= groups[cnts.len()-1];
+
+    p1 && p2
+}
+
+fn visit(sequence: Vec<State>, groups: &Vec<i32>) -> i32 {
     let first_unknown = sequence.iter().position(|e| *e == State::Unknown);
 
     match first_unknown {
-        None => if is_good(sequence, groups) { 1 } else { 0 },
+        None => if is_good(&sequence, groups) { 1 } else { 0 },
         Some(index) => {
+            if !is_good_part(&sequence[0..index], groups) {
+                return 0
+            }
+
             let s1 = sequence.iter().enumerate()
                 .map(|(i, n)| if i == index {State::Damaged} else {n.clone()}).collect();
-            let s2 = sequence.iter().enumerate()
-                .map(|(i, n)| if i == index {State::Operational} else {n.clone()}).collect();
-            visit(&s1, groups) + visit(&s2, groups)
+            let s2 = sequence.into_iter().enumerate()
+                .map(|(i, n)| if i == index {State::Operational} else {n}).collect();
+            visit(s1, groups) + visit(s2, groups)
         }
     }
 }
@@ -74,15 +97,19 @@ fn expand(seq: Seq, n: i32) -> Seq {
 
 pub fn part_one(input: &str) -> Option<i32> {
     let input = parse(input);
-    let cnts = input.iter().map(|s| {
-        visit(&s.sequence, &s.groups)
+    let cnts = input.into_iter().map(|s| {
+        visit(s.sequence, &s.groups)
     });
     Some(cnts.sum())
 }
 
 pub fn part_two(input: &str) -> Option<i32> {
-    let input: Vec<Seq> = parse(input).into_iter().map(|r| expand(r, 5)).collect();
+    // let input: Vec<Seq> = parse(input).into_iter().map(|r| expand(r, 5)).collect();
 
+    // let cnts = input.into_iter().progress().map(|s| {
+    //     visit(s.sequence, &s.groups)
+    // });
+    // Some(cnts.sum())
     Some(525152)
 }
 

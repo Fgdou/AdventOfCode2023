@@ -15,5 +15,6 @@ test_lib = []
 
 [dependencies]
 cgmath = "0.18.0"
+indicatif = "0.17.7"
 num = "0.4.1"
 pico-args = "0.5.0"
