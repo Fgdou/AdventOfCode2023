@@ -47,12 +47,21 @@ fn is_mirror(hash: &Vec<u64>, i: usize) -> bool {
 }
 
 fn find_mirror(hash: &Vec<u64>) -> Option<usize> {
-    for i in 1..=hash.len() {
+    for i in 0..=hash.len() {
         if is_mirror(hash, i) {
             return Some(i)
         }
     }
     None
+}
+
+fn print(input: &Vec<Vec<bool>>) {
+    for i in input {
+        for j in i {
+            print!("{}", if *j {"#"} else {"."})
+        }
+        println!()
+    }
 }
 
 pub fn part_one(input: &str) -> Option<usize> {
@@ -66,7 +75,11 @@ pub fn part_one(input: &str) -> Option<usize> {
         let col = find_mirror(&cols);
 
         match (line, col) {
-            (None, None) => unreachable!(),
+            (None, None) => {
+                print(grid);
+                println!("{:?}", cols);
+                unreachable!()
+            },
             (None, Some(x)) => x+1,
             (Some(x), None) => 100*(x+1),
             (Some(_), Some(_)) => unreachable!(),
@@ -115,9 +128,15 @@ mod tests {
         assert_eq!(false, is_mirror(&vec!(1, 0, 1, 0, 0, 1, 1), 3));
         assert_eq!(true, is_mirror(&vec!(1, 0, 1, 0, 0, 2, 2), 5));
         assert_eq!(true, is_mirror(&vec!(5, 5, 1, 0, 0, 2, 2), 0));
+        assert_eq!(true, is_mirror(&vec!(5, 5, 1, 0, 0, 2), 0));
+        assert_eq!(true, is_mirror(&vec!(5, 5, 0, 0, 2), 0));
+        assert_eq!(true, is_mirror(&vec!(5, 5, 0, 2), 0));
+        assert_eq!(true, is_mirror(&vec!(5, 5, 2), 0));
+        assert_eq!(true, is_mirror(&vec!(5, 5), 0));
         assert_eq!(true, is_mirror(&vec!(5, 6, 6, 5, 0, 2, 2), 1));
         assert_eq!(true, is_mirror(&vec!(5, 5, 6, 6, 5, 5, 2), 2));
         assert_eq!(true, is_mirror(&vec!(2, 5, 5, 6, 6, 5, 5), 3));
+        assert_eq!(true, is_mirror(&vec!(8478844302057451079, 8478844302057451079, 15134898337082185605, 14152414884309465293, 14451582079670384677, 6391166416506382924, 16063916804375491602, 12091216157700848071, 17418744119211472666, 15134898337082185605, 7855126870682793489), 0));
     }
 }
 
