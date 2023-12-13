@@ -1,4 +1,4 @@
-use std::{hash::{Hash, Hasher}, collections::hash_map::DefaultHasher};
+use std::{hash::{Hash, Hasher}, collections::{hash_map::DefaultHasher, HashSet}};
 
 use indicatif::ProgressIterator;
 
@@ -46,13 +46,14 @@ fn is_mirror(hash: &Vec<u64>, i: usize) -> bool {
     return true
 }
 
-fn find_mirror(hash: &Vec<u64>) -> Option<usize> {
+fn find_mirror(hash: &Vec<u64>) -> HashSet<usize> {
+    let mut set = HashSet::new();
     for i in 0..=hash.len() {
         if is_mirror(hash, i) {
-            return Some(i)
+            set.insert(i);
         }
     }
-    None
+    set
 }
 
 fn print(input: &Vec<Vec<bool>>) {
@@ -62,36 +63,58 @@ fn print(input: &Vec<Vec<bool>>) {
         }
         println!()
     }
+    println!()
 }
 
 pub fn part_one(input: &str) -> Option<usize> {
     let input = parse(input);
 
-    let res = input.iter().progress().map(|grid| {
-        let lines: Vec<u64> = (0..grid.len()).into_iter().map(|i| get_hash_line(&grid, i)).collect();
-        let cols: Vec<u64> = (0..grid[0].len()).into_iter().map(|i| get_hash_column(&grid, i)).collect();
-
-        let line = find_mirror(&lines);
-        let col = find_mirror(&cols);
-
-        match (line, col) {
-            (None, None) => {
-                print(grid);
-                println!("{:?}", cols);
-                unreachable!()
-            },
-            (None, Some(x)) => x+1,
-            (Some(x), None) => 100*(x+1),
-            (Some(_), Some(_)) => unreachable!(),
-        }
-    })
+    let res = input.iter().progress().map(|grid| *get_reflection(grid).iter().next().unwrap())
     .sum();
 
     Some(res)
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    None
+fn get_reflection(grid: &Vec<Vec<bool>>) -> HashSet<usize> {
+    let mut set = HashSet::new();
+    let lines: Vec<u64> = (0..grid.len()).into_iter().map(|i| get_hash_line(&grid, i)).collect();
+    let cols: Vec<u64> = (0..grid[0].len()).into_iter().map(|i| get_hash_column(&grid, i)).collect();
+
+    let line = find_mirror(&lines);
+    let col = find_mirror(&cols);
+
+    set.extend(line.into_iter().map(|e| 100*(e+1)));
+    set.extend(col.into_iter().map(|e| (e+1)));
+
+    set
+}
+
+pub fn part_two(input: &str) -> Option<usize> {
+    let input = parse(input);
+
+    let res = input.into_iter().progress().map(|mut grid| {
+        let not_this = *get_reflection(&grid).iter().next().unwrap();
+
+        for y in 0..grid.len() {
+            for x in 0..grid[0].len() {
+                grid[y][x] = !grid[y][x];
+
+                let reflects = get_reflection(&grid);
+
+                if let Some(e) = reflects.iter().find(|e| e != &&not_this) {
+                    return *e
+                }
+
+
+                grid[y][x] = !grid[y][x];
+            }
+        }
+        print(&grid);
+        unreachable!()
+    })
+    .sum();
+
+    Some(res)
 }
 
 advent_of_code::main!(13);
@@ -109,7 +132,7 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", 13));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(400));
     }
 
     #[test]
