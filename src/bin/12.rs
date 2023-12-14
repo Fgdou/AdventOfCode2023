@@ -1,5 +1,3 @@
-use indicatif::{ProgressBar, ProgressIterator};
-
 #[derive(PartialEq, Clone, Debug)]
 enum State {
     Operational,
@@ -82,18 +80,18 @@ fn visit(sequence: Vec<State>, groups: &Vec<i32>) -> i32 {
     }
 }
 
-fn expand(seq: Seq, n: i32) -> Seq {
-    Seq {
-        groups: (0..n).into_iter().map(|_| seq.groups.clone()).flatten().collect(),
-        sequence: (0..n).into_iter()
-            .map(|_| seq.sequence.clone())
-            .reduce(|mut acc, mut e| {
-                acc.push(State::Unknown);
-                acc.append(&mut e);
-                acc
-            }).unwrap()
-    }
-}
+// fn expand(seq: Seq, n: i32) -> Seq {
+//     Seq {
+//         groups: (0..n).into_iter().map(|_| seq.groups.clone()).flatten().collect(),
+//         sequence: (0..n).into_iter()
+//             .map(|_| seq.sequence.clone())
+//             .reduce(|mut acc, mut e| {
+//                 acc.push(State::Unknown);
+//                 acc.append(&mut e);
+//                 acc
+//             }).unwrap()
+//     }
+// }
 
 pub fn part_one(input: &str) -> Option<i32> {
     let input = parse(input);
@@ -103,7 +101,7 @@ pub fn part_one(input: &str) -> Option<i32> {
     Some(cnts.sum())
 }
 
-pub fn part_two(input: &str) -> Option<i32> {
+pub fn part_two(_input: &str) -> Option<i32> {
     // let input: Vec<Seq> = parse(input).into_iter().map(|r| expand(r, 5)).collect();
 
     // let cnts = input.into_iter().progress().map(|s| {
@@ -148,16 +146,16 @@ mod tests {
         assert_eq!(true, is_good(&vec!(Operational, Damaged, Damaged, Operational), &vec!(2)));
     }
 
-    #[test]
-    fn test_expand(){
-        let vec = Seq{
-            groups: vec!(1, 2),
-            sequence: vec!(State::Operational, State::Damaged)
-        };
-        let expected = Seq {
-            groups: vec!(1, 2, 1, 2),
-            sequence: vec!(State::Operational, State::Damaged, State::Unknown, State::Operational, State::Damaged)
-        };
-        assert_eq!(expected, expand(vec, 2));
-    }
+    // #[test]
+    // fn test_expand(){
+    //     let vec = Seq{
+    //         groups: vec!(1, 2),
+    //         sequence: vec!(State::Operational, State::Damaged)
+    //     };
+    //     let expected = Seq {
+    //         groups: vec!(1, 2, 1, 2),
+    //         sequence: vec!(State::Operational, State::Damaged, State::Unknown, State::Operational, State::Damaged)
+    //     };
+    //     assert_eq!(expected, expand(vec, 2));
+    // }
 }
