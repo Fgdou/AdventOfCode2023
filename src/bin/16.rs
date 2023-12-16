@@ -63,16 +63,7 @@ fn parse(input: &str) -> Input {
     }).collect()
 }
 
-
-pub fn part_one(input: &str) -> Option<usize> {
-    let input = parse(input);
-
-    let start_beam = Beam{
-        dir: Direction::Right,
-        pos: Vector2::zero()
-    };
-
-
+fn count(input: &Input, start_beam: Beam) -> usize {
     let mut stack = Vec::<Beam>::new();
     let mut cache = HashSet::<Beam>::new();
 
@@ -91,12 +82,50 @@ pub fn part_one(input: &str) -> Option<usize> {
     }
 
     let poses = cache.into_iter().map(|b| b.pos).collect::<HashSet<_>>();
-
-    Some(poses.len())
+    poses.len()
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    None
+pub fn part_one(input: &str) -> Option<usize> {
+    let input = parse(input);
+
+    let start_beam = Beam{
+        dir: Direction::Right,
+        pos: Vector2::zero()
+    };
+
+
+    Some(count(&input, start_beam))
+}
+
+pub fn part_two(input: &str) -> Option<usize> {
+    let input = parse(input);
+
+    let mut starts = Vec::new();
+
+    for i in 0..input[0].len() {
+        starts.push(Beam{
+            pos: Vector2::new(i as i32, 0),
+            dir: Direction::Down
+        });
+        starts.push(Beam{
+            pos: Vector2::new(i as i32, input.len() as i32-1),
+            dir: Direction::Up
+        });
+    }
+    for i in 0..input.len() {
+        starts.push(Beam{
+            pos: Vector2::new(0, i as i32),
+            dir: Direction::Right
+        });
+        starts.push(Beam{
+            pos: Vector2::new(input[0].len() as i32-1, i as i32),
+            dir: Direction::Up
+        });
+    }
+
+    let res = starts.into_iter().map(|start| count(&input, start)).max().unwrap();
+
+    Some(res)
 }
 
 advent_of_code::main!(16);
@@ -114,6 +143,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", 16));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(51));
     }
 }
