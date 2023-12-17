@@ -65,7 +65,7 @@ fn visit2(input: &Input) -> HashMap<Vector2<i32>, Node> {
 
         let value = stack.pop().unwrap();
 
-        for d in vec!(Direction::Left, Direction::Right, Direction::Up, Direction::Down) {
+        for d in vec!(Direction::Up, Direction::Down, Direction::Left, Direction::Right) {
             let new_pos = move_vec(&value.pos, &d);
 
             if new_pos.x < 0 || new_pos.y < 0 || new_pos.x >= input[0].len() as i32 || new_pos.y >= input.len() as i32 {
@@ -81,7 +81,7 @@ fn visit2(input: &Input) -> HashMap<Vector2<i32>, Node> {
                 _ => 0
             };
 
-            if straight > 3 {
+            if straight >= 3 {
                 continue;
             }
 
@@ -94,7 +94,7 @@ fn visit2(input: &Input) -> HashMap<Vector2<i32>, Node> {
             };
 
             if let Some(v2) = stack.iter().find(|e| e.pos == new_pos) {
-                if v2.value < node.value {
+                if v2.value <= node.value {
                     continue;
                 }
             }
