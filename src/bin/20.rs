@@ -125,6 +125,30 @@ fn push_button(input: &mut Input) -> (usize, usize) {
 
     cnt
 }
+fn push_button2(input: &mut Input) -> bool {
+    let mut cache: Vec<Pulse> = Vec::new();
+
+    cache.push(Pulse {
+        state: State::Low,
+        destination: "broadcaster".to_string(),
+        from: "button".to_string(),
+    });
+
+    while !cache.is_empty() {
+        let pulse = cache.remove(0);
+
+        if pulse.destination.as_str() == "rx" && pulse.state == State::Low {
+            return true;
+        }
+
+        if let Some(m) = input.get_mut(&pulse.destination) {
+            let res = m.pulse(pulse);
+            cache.extend(res);
+        }
+    }
+
+    false
+}
 
 pub fn part_one(input: &str) -> Option<usize> {
     let mut input = parse(input);
@@ -136,7 +160,19 @@ pub fn part_one(input: &str) -> Option<usize> {
     Some(res.0*res.1)
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
+pub fn part_two(input: &str) -> Option<usize> {
+    // let mut input = parse(input);
+
+    // let mut cnt = 0;
+
+    // loop {
+    //     cnt += 1;
+    //     if push_button2(&mut input) {
+    //         break;
+    //     }
+    // }
+
+    // Some(cnt)
     None
 }
 
@@ -150,11 +186,5 @@ mod tests {
     fn test_part_one() {
         let result = part_one(&advent_of_code::template::read_file("examples", 20));
         assert_eq!(result, Some(11687500));
-    }
-
-    #[test]
-    fn test_part_two() {
-        let result = part_two(&advent_of_code::template::read_file("examples", 20));
-        assert_eq!(result, None);
     }
 }
