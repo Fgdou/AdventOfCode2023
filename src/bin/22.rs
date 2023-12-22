@@ -1,7 +1,7 @@
-use std::collections::{HashMap, HashSet};
+use std::{collections::{HashMap, HashSet}, hash::Hash};
 
 use cgmath::{Vector3, Zero};
-use indicatif::ProgressIterator;
+use indicatif::{ProgressIterator, ProgressBar};
 use itertools::Itertools;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -98,16 +98,17 @@ fn get_support(input: &Vec<Line>) -> HashMap<Line, HashSet<Line>> {
     }).collect()
 }
 
-fn count_total(mut lines: HashSet<Line>, up_supports: &HashMap<Line, HashSet<Line>>) -> isize {
-    let others: Vec<Line> = up_supports.iter()
+fn count_total<T>(mut lines: HashSet<T>, up_supports: &HashMap<T, HashSet<T>>) -> isize
+    where T: PartialEq + Eq + Hash + Clone {
+    let others: Vec<T> = up_supports.iter()
         .filter(|e| {
-            e.1.len() != 0 && !lines.contains(e.0) && e.1.iter().all(|e| lines.contains(e))
+            !e.1.is_empty() && !lines.contains(e.0) && e.1.iter().all(|e| lines.contains(e))
         })
         .map(|e| e.0.clone())
         .collect();
 
     if others.len() == 0 {
-        lines.len() as isize
+        lines.len() as isize - 1
     } else {
         lines.extend(others);
         count_total(lines, up_supports)
@@ -139,9 +140,10 @@ pub fn part_one(input: &str) -> Option<usize> {
 
     println!("Down");
     let mut set = HashSet::new();
+    let progress = ProgressBar::new(input.len() as u64);
     loop {
+        progress.set_position(set.len() as u64);
         let res = down(&mut input, &mut set);
-        println!("{} {}", res, set.len());
         if res == 0 {
             break;
         }
@@ -157,29 +159,30 @@ pub fn part_one(input: &str) -> Option<usize> {
 }
 
 pub fn part_two(input: &str) -> Option<isize> {
-    // let mut input = parse(input);
+    let mut input = parse(input);
 
-    // println!("Sort");
-    // input.sort_by_key(|e| e.left.z.min(e.right.z));
+    println!("Sort");
+    input.sort_by_key(|e| e.left.z.min(e.right.z));
 
-    // println!("Down");
-    // let mut set = HashSet::new();
-    // loop {
-    //     let res = down(&mut input, &mut set);
-    //     println!("{} {}", res, set.len());
-    //     if res == 0 {
-    //         break;
-    //     }
-    // };
+    println!("Down");
+    let mut set = HashSet::new();
+    let progress = ProgressBar::new(input.len() as u64);
+    loop {
+        progress.set_position(set.len() as u64);
+        let res = down(&mut input, &mut set);
+        if res == 0 {
+            break;
+        }
+    };
 
-    // println!("Support");
-    // let supports = get_support(&input);
+    println!("Support");
+    let supports = get_support(&input);
 
-    // println!("Count");
-    // let res = input.iter().progress().map(|l| count_total(vec!(l.clone()).into_iter().collect(), &supports)).max().unwrap();
+    println!("Count");
+    let res = input.iter().progress().map(|l| count_total(vec!(l.clone()).into_iter().collect(), &supports)).sum();
 
-    // Some(res)
-    Some(7)
+    Some(res)
+    // Some(7)
 }
 
 advent_of_code::main!(22);
@@ -202,3 +205,4 @@ mod tests {
 }
 
 // > 1223
+// 1300
