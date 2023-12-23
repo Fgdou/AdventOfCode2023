@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use cgmath::Vector2;
 
@@ -59,6 +59,48 @@ fn run(input: &Input, start: &Vector2<isize>) -> HashMap<Vector2<isize>, isize> 
     visited
 }
 
+fn print(input: &Input, map: &HashMap<Vector2<isize>, isize>) {
+    for i in 0..input.len() {
+        for j in 0..input[0].len() {
+            let pos = Vector2::new(j as isize, i as isize);
+            if let Some(v) = map.get(&pos) {
+                print!("{}", v.to_string().chars().last().unwrap());
+            } else {
+                print!("{}", input[i][j])
+            }
+        }
+        println!();
+    }
+    println!();
+}
+
+fn run2(input: &Input, pos: Vector2<isize>, end: &Vector2<isize>, mut history: HashSet<Vector2<isize>>) -> Option<isize> {
+    if pos.x < 0 || pos.y < 0 || pos.x >= input[0].len() as isize || pos.y >= input.len() as isize {
+        return None;
+    }
+    if history.contains(&pos) {
+        return None;
+    }
+    if &pos == end {
+        return Some(history.len() as isize)
+    }
+
+    let c = input[pos.y as usize][pos.x as usize];
+    if c == '#' {
+        return None;
+    }
+
+    history.insert(pos);
+
+    let max = [Vector2::new(0, 1),Vector2::new(0, -1),Vector2::new(1, 0),Vector2::new(-1, 0)].iter()
+        .filter_map(|d| {
+            let pos = pos + d;
+            run2(input, pos, end, history.clone())
+        }).max();
+
+    max
+}
+
 pub fn part_one(input: &str) -> Option<isize> {
     let input = parse(input);
 
@@ -70,8 +112,15 @@ pub fn part_one(input: &str) -> Option<isize> {
     Some(res[&end])
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    None
+pub fn part_two(input: &str) -> Option<isize> {
+    let input = parse(input);
+
+    let start = Vector2::new(find_free(&input[0]), 0);
+    let end = Vector2::new(find_free(&input[input.len()-1]), input.len() as isize-1);
+
+    let res = run2(&input, start, &end, Default::default());
+
+    res
 }
 
 advent_of_code::main!(23);
@@ -89,6 +138,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", 23));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(154));
     }
 }
