@@ -10,6 +10,7 @@ dependencies = [
  "indicatif",
  "itertools",
  "num",
+ "num-bigint",
  "pathfinding",
  "pico-args",
 ]
